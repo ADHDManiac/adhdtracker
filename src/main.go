@@ -27,6 +27,8 @@ type Response struct {
 
 //go:embed index.html
 var content embed.FS
+//go:embed style/main.css
+var stylesCSS []byte
 
 func main() {
 	port := os.Getenv("PORT")
@@ -80,6 +82,9 @@ func main() {
             http.NotFound(w, r)
         }
     })
+
+    http.HandleFunc("/styles/main.css", stylesHandler)
+
     
     
     
@@ -184,3 +189,8 @@ func writeJSONResponse(w http.ResponseWriter,statusCode int, response Response) 
     func writeErrorResponse(w http.ResponseWriter, statusCode int, message string) {
     writeJSONResponse(w, statusCode, Response{Err: message})
     }
+
+func stylesHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "text/css")
+	w.Write(stylesCSS)
+}
