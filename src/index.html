@@ -9,6 +9,12 @@
     <meta http-equiv="Expires" content="0">
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
         integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://unpkg.com/@fullcalendar/core@5.10.1/main.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/@fullcalendar/daygrid@5.10.1/main.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/vue@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios"></script>
+    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.5/index.global.min.js'></script>
 </head>
 
 <body>
@@ -23,8 +29,16 @@
                     <label for="task-name">Task Name</label>
                     <input type="text" class="form-control" id="task-name" v-model="newTask.name" required>
                 </div>
+                <label for="due-date">Due Date</label>
+                <input type="date" class="form-control" id="due-date" v-model="newTask.dueDate">
+                <br>
                 <button type="submit" class="btn btn-primary">Add Task</button>
             </form>
+
+            <div class="mt-5">
+                <h4>Task Calendar</h4>
+                <div id="calendar"></div>
+            </div>
 
             <table class="table">
                 <thead>
@@ -61,9 +75,7 @@
 
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/vue@2"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
-    <script src="https://cdn.jsdelivr.net/npm/axios"></script>
+
     <script>
         new Vue({
             el: '#app',
@@ -72,6 +84,7 @@
                 newTask: {
                     name: '',
                 },
+                calendar: null,
             },
             methods: {
                 addTask: function () {
@@ -152,6 +165,25 @@
                     .then(function (response) {
                         self.tasks = response.data.data;
                     });
+                self.initCalendar();
+            },
+            initCalendar: function () {
+                if (this.calendar) {
+                    this.calendar.destroy();
+                }
+
+                const calendarEl = document.getElementById('calendar');
+                this.calendar = new FullCalendar.Calendar(calendarEl, {
+                    initialView: 'dayGridMonth',
+                    events: this.tasks.map(task => ({
+                        title: task.name,
+                        start: task.dueDate,
+                        backgroundColor: task.status === 'Done' ? 'green' : 'red',
+                        borderColor: 'white',
+                    })),
+                });
+
+                this.calendar.render();
             },
             computed: {
                 progressPercentage: function () {
@@ -159,6 +191,11 @@
                     const totalTasks = this.tasks.length;
                     return totalTasks === 0 ? 0 : Math.round((completedTasks / totalTasks) * 100);
                 }
+            },
+            watch: {
+                tasks: function () {
+                    this.initCalendar();
+                },
             },
         });
     </script>
